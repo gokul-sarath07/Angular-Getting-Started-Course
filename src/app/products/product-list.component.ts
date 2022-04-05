@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { IProduct } from "./product";
+import { ProductService } from "./product.service";
 
 @Component({
     selector: 'pm-products',
@@ -7,60 +8,41 @@ import { IProduct } from "./product";
     styleUrls: ['./product-list.component.css',]
 })
 export class ProductListComponent implements OnInit {
-    pageTitle: string = 'Product List';
-    imageWidth: number = 50;
-    imageMargin: number = 2;
-    showImage: boolean = false;
-    
-    private _filterItem: string = '';
-    get filterItem() {
-      return this._filterItem;
-    }
-    set filterItem(value: string) {
-      this._filterItem = value;
-      console.log(this._filterItem);
-      this.filteredProducts = this.performFilter(value);
-    }
+  constructor(private productService: ProductService) {}
+  
+  pageTitle: string = 'Product List';
+  imageWidth: number = 50;
+  imageMargin: number = 2;
+  showImage: boolean = false;
+  products: IProduct[] = [];
+  filteredProducts: IProduct[] = [];
 
-    products: IProduct[] = [
-      {
-        "productId": 1,
-        "productName": "Leaf Rake",
-        "productCode": "GDN-0011",
-        "releaseDate": "March 19, 2021",
-        "description": "Leaf rake with 48-inch wooden handle.",
-        "price": 19.95,
-        "starRating": 3.2,
-        "imageUrl": "assets/images/leaf_rake.png"
-      },
-      {
-        "productId": 2,
-        "productName": "Garden Cart",
-        "productCode": "GDN-0023",
-        "releaseDate": "March 18, 2021",
-        "description": "15 gallon capacity rolling garden cart",
-        "price": 32.99,
-        "starRating": 4.2,
-        "imageUrl": "assets/images/garden_cart.png"
-      }
-    ];
-    filteredProducts: IProduct[] = this.products;
+  private _filterItem: string = '';
+  get filterItem() {
+    return this._filterItem;
+  }
+  set filterItem(value: string) {
+    this._filterItem = value;
+    console.log(this._filterItem);
+    this.filteredProducts = this.performFilter(value);
+  }
 
-    toggleImage(): void {
-      this.showImage = !this.showImage;
-    }
+  toggleImage(): void {
+    this.showImage = !this.showImage;
+  }
 
-    ngOnInit(): void {
-      console.log('In OnInit');
-    }
+  ngOnInit(): void {
+    this.products = this.productService.getProducts();
+    this.filteredProducts = this.products;
+  }
 
-    performFilter(filterBy: string): IProduct[] {
-      filterBy = filterBy.toLocaleLowerCase();
-      return this.products.filter((product: IProduct) => 
-        product.productName.toLocaleLowerCase().includes(filterBy));
-    }
+  performFilter(filterBy: string): IProduct[] {
+    filterBy = filterBy.toLocaleLowerCase();
+    return this.products.filter((product: IProduct) => 
+      product.productName.toLocaleLowerCase().includes(filterBy));
+  }
 
-    onRatingClicked(message: string): void {
-      this.pageTitle = 'Product List: ' + message;
-    }
+  onRatingClicked(message: string): void {
+    this.pageTitle = 'Product List: ' + message;
+  }
 }
