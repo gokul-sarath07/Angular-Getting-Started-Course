@@ -1,66 +1,59 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Subscription } from "rxjs";
 import { IProduct } from "./product";
+import { ProductService } from "./product.service";
 
 @Component({
-    selector: 'pm-products',
     templateUrl: './product-list.component.html',
     styleUrls: ['./product-list.component.css',]
 })
-export class ProductListComponent implements OnInit {
-    pageTitle: string = 'Product List';
-    imageWidth: number = 50;
-    imageMargin: number = 2;
-    showImage: boolean = false;
-    
-    private _filterItem: string = '';
-    get filterItem() {
-      return this._filterItem;
-    }
-    set filterItem(value: string) {
-      this._filterItem = value;
-      console.log(this._filterItem);
-      this.filteredProducts = this.performFilter(value);
-    }
+export class ProductListComponent implements OnInit, OnDestroy {
+  constructor(private productService: ProductService) {}
+  
+  pageTitle: string = 'Product List';
+  imageWidth: number = 50;
+  imageMargin: number = 2;
+  showImage: boolean = false;
+  errorMessage: string = '';
+  sub!: Subscription;
+  products: IProduct[] = [];
+  filteredProducts: IProduct[] = [];
 
-    products: IProduct[] = [
-      {
-        "productId": 1,
-        "productName": "Leaf Rake",
-        "productCode": "GDN-0011",
-        "releaseDate": "March 19, 2021",
-        "description": "Leaf rake with 48-inch wooden handle.",
-        "price": 19.95,
-        "starRating": 3.2,
-        "imageUrl": "assets/images/leaf_rake.png"
+  private _filterItem: string = '';
+  get filterItem() {
+    return this._filterItem;
+  }
+  set filterItem(value: string) {
+    this._filterItem = value;
+    console.log(this._filterItem);
+    this.filteredProducts = this.performFilter(value);
+  }
+
+  toggleImage(): void {
+    this.showImage = !this.showImage;
+  }
+
+  ngOnInit(): void {
+    this.sub = this.productService.getProducts().subscribe({
+      next: products => { 
+        this.products = products;
+        this.filteredProducts = this.products;
       },
-      {
-        "productId": 2,
-        "productName": "Garden Cart",
-        "productCode": "GDN-0023",
-        "releaseDate": "March 18, 2021",
-        "description": "15 gallon capacity rolling garden cart",
-        "price": 32.99,
-        "starRating": 4.2,
-        "imageUrl": "assets/images/garden_cart.png"
-      }
-    ];
-    filteredProducts: IProduct[] = this.products;
+      error: err => this.errorMessage = err
+    });
+  }
 
-    toggleImage(): void {
-      this.showImage = !this.showImage;
-    }
+  ngOnDestroy(): void {
+      this.sub.unsubscribe();
+  }
 
-    ngOnInit(): void {
-      console.log('In OnInit');
-    }
+  performFilter(filterBy: string): IProduct[] {
+    filterBy = filterBy.toLocaleLowerCase();
+    return this.products.filter((product: IProduct) => 
+      product.productName.toLocaleLowerCase().includes(filterBy));
+  }
 
-    performFilter(filterBy: string): IProduct[] {
-      filterBy = filterBy.toLocaleLowerCase();
-      return this.products.filter((product: IProduct) => 
-        product.productName.toLocaleLowerCase().includes(filterBy));
-    }
-
-    onRatingClicked(message: string): void {
-      this.pageTitle = 'Product List: ' + message;
-    }
+  onRatingClicked(message: string): void {
+    this.pageTitle = 'Product List: ' + message;
+  }
 }
